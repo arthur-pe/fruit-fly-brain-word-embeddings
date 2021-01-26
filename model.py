@@ -1,10 +1,9 @@
 import torch
 import torch.nn as nn
 
-
 class KCnetwork(nn.Module):
 
-    def __init__(self, dim_hidden, vocab_size, freq_words): #len(freq_words)=vocab_size, remove vocab_size?
+    def __init__(self, dim_hidden, vocab_size, freq_words):
         super(KCnetwork, self).__init__()
 
         self.W = nn.Parameter(torch.randn(2*vocab_size, dim_hidden))
@@ -24,21 +23,25 @@ class KCnetwork(nn.Module):
 
     def Grad(self, data, epsilon):
 
-        #unsqueeze should be removed if batched
-        mu_hat = torch.argmax(torch.mm(data.unsqueeze(0), self.W), dim=1).squeeze()
+        mu_hat = torch.argmax(torch.mm(data, self.W), dim=1)
 
-        dW = torch.zeros(2*self.vocab_size, self.dim_hidden)
+        dW = torch.zeros(self.dim_hidden,2*self.vocab_size)
 
         data_p = data/self.p
 
-        #Gather?
-        dW[:,mu_hat] = epsilon*(data_p-self.W[:,mu_hat]*(torch.dot(data_p, self.W[:,mu_hat])))
+        src = epsilon*(data_p-self.W[:,mu_hat].transpose(0,1)*(torch.sum(data_p*self.W[:,mu_hat].transpose(0,1), dim=1)).unsqueeze(1))
+
+        dW.scatter_add_(dim=0,index=mu_hat.unsqueeze(1),src=src)
+
+        dW = dW.transpose(0,1)
 
         return dW
 
     def Step(self, data, epsilon):
 
-        self.W += self.Grad(data, epsilon)
+        with torch.no_grad():
+
+            self.W += self.Grad(data, epsilon)
 
     def Hash(self, data, k):
 
