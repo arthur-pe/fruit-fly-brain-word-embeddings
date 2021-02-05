@@ -1,0 +1,5 @@
+Ce dossier contient deux fichiers python utilisé pour récpérer les vecteurs d'entrainement.
+Le fichier fit_openwebtext.py est utilisé pour constuire le dictionnaire de mots du dataset selon les paramètres donnés en entrée.
+Le fichier transform_openwebtext.py est utilisé pour construire les vecteurs d'entrainement.
+
+Nous avons également mis quelques échantillons de fichiers vecteurs en attendant que le tout soit traité.
